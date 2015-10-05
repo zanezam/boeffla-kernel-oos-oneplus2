@@ -362,8 +362,9 @@ GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a) \
  -fomit-frame-pointer \
  -fmodulo-sched \
  -fmodulo-sched-allow-regmoves \
- -fivopts
-
+ -fivopts \
+ -Wno-array-bounds
+ 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
 		-I$(srctree)/arch/$(hdr-arch)/include/uapi \
@@ -596,7 +597,7 @@ all: vmlinux
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else
-KBUILD_CFLAGS	+= -Ofast
+KBUILD_CFLAGS	+= -Ofast -Wno-maybe-uninitialized
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
