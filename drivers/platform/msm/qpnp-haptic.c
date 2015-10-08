@@ -1030,17 +1030,21 @@ static ssize_t qpnp_hap_play_mode_show(struct device *dev,
 	return snprintf(buf, PAGE_SIZE, "%s\n", str);
 }
 
-static ssize_t qpnp_hap_vmax_mv_show(struct device *dev,
+static ssize_t qpnp_hap_level_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	struct timed_output_dev *timed_dev = dev_get_drvdata(dev);
 	struct qpnp_hap *hap = container_of(timed_dev, struct qpnp_hap,
 					 timed_dev);
-
-	return snprintf(buf, PAGE_SIZE, "%d\n", hap->vmax_mv);
+	u32 level;
+	
+	// convert mV to level
+	level = hap->vmax_mv / 100;
+	
+	return snprintf(buf, PAGE_SIZE, "%d\n", level);
 }
 
-static ssize_t qpnp_hap_vmax_mv_store(struct device *dev,
+static ssize_t qpnp_hap_level_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct timed_output_dev *timed_dev = dev_get_drvdata(dev);
@@ -1051,6 +1055,9 @@ static ssize_t qpnp_hap_vmax_mv_store(struct device *dev,
 
 	if (sscanf(buf, "%d", &data) != 1)
 		return -EINVAL;
+
+	// convert level to mV
+	data = data * 100;
 
 	if (data < QPNP_HAP_VMAX_MIN_MV) {
 		pr_err("%s: mv %d not in range (%d - %d), using min.", __func__, data, QPNP_HAP_VMAX_MIN_MV, QPNP_HAP_VMAX_MAX_MV);
@@ -1109,9 +1116,9 @@ static struct device_attribute qpnp_hap_attrs[] = {
 	__ATTR(dump_regs, (S_IRUGO | S_IWUSR | S_IWGRP),
 			qpnp_hap_dump_regs_show,
 			NULL),
-	__ATTR(vmax_mv, (S_IRUGO | S_IWUSR | S_IWGRP),
-			qpnp_hap_vmax_mv_show,
-			qpnp_hap_vmax_mv_store),
+	__ATTR(level, (S_IRUGO | S_IWUSR | S_IWGRP),
+			qpnp_hap_level_show,
+			qpnp_hap_level_store),
 };
 
 /* set api for haptics */
