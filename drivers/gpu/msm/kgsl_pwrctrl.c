@@ -1450,7 +1450,7 @@ int kgsl_pwrctrl_init(struct kgsl_device *device)
 	if(get_chipset_a57speedbin())
 		pwr->max_pwrlevel = 1;
 #endif
-	pwr->min_pwrlevel = pdata->num_levels - 2;
+	pwr->min_pwrlevel = pdata->num_levels - 3;
 	pwr->thermal_pwrlevel = 0;
 
 	pwr->active_pwrlevel = pdata->init_level;
