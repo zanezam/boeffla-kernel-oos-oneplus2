@@ -1327,6 +1327,7 @@ KBUILD_CPPFLAGS += $(CDEFINES)
 # will override the kernel settings.
 ifeq ($(call cc-option-yn, -Wmaybe-uninitialized),y)
 EXTRA_CFLAGS += -Wmaybe-uninitialized
+EXTRA_CFLAGS += -fno-pic
 endif
 
 # Module information used by KBuild framework
