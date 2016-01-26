@@ -1241,7 +1241,7 @@ if [ "action_debug_info_file" == "$1" ]; then
 
 	echo -e "\n**** boeffla_sound\n" >> $2
 	cd /sys/class/misc/boeffla_sound
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 
 	echo "\n============================================\n" >> $2
 
@@ -1253,25 +1253,25 @@ if [ "action_debug_info_file" == "$1" ]; then
 
 	echo -e "\n**** CPU information:\n" >> $2
 	cd /sys/devices/system/cpu/cpu0/cpufreq
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 	cd /sys/devices/system/cpu/cpu1/cpufreq
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 	cd /sys/devices/system/cpu/cpu2/cpufreq
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 	cd /sys/devices/system/cpu/cpu3/cpufreq
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 	cd /sys/devices/system/cpu/cpu4/cpufreq
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 	cd /sys/devices/system/cpu/cpu5/cpufreq
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 	cd /sys/devices/system/cpu/cpu6/cpufreq
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 	cd /sys/devices/system/cpu/cpu7/cpufreq
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 
 	echo -e "\n**** GPU information:\n" >> $2
 	cd /sys/class/kgsl/kgsl-3d0
-	busybox find * -print -maxdepth 1 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 1 -type f -exec busybox tail -v -n +1 {} + >> $2
 
 	echo -e "\n**** Root:\n" >> $2
 	ls /system/xbin/su >> $2
@@ -1292,15 +1292,15 @@ if [ "action_debug_info_file" == "$1" ]; then
 
 	echo -e "\n**** Various kernel settings by config app:\n" >> $2
 	cd /dev
-	busybox find bk_* -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find bk_* -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 
 	echo -e "\n**** Touch boost:\n" >> $2
 	cd /sys/class/misc/touchboost_switch
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 
 	echo -e "\n**** Charging levels (ac/usb/wireless) and Charging instable power / ignore safety margin:\n" >> $2
 	cd /sys/kernel/charge_levels
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 
 	echo -e "\n**** Scheduler:\n" >> $2
 	cat /sys/block/mmcblk0/queue/scheduler >> $2
@@ -1316,22 +1316,22 @@ if [ "action_debug_info_file" == "$1" ]; then
 
 	echo -e "\n**** LED information:\n" >> $2
 	cd /sys/class/leds/red/device
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 
 	echo -e "\n**** Color control information:\n" >> $2
 	cd /sys/devices/platform/kcal_ctrl.0
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 	
 	#echo -e "\n**** Swipe2wake information:\n" >> $2
 	#cd /proc/touchpanel
-	#busybox find sweep* -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	#busybox find sweep* -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 
 	#echo -e "\n**** Swipe2sleep information:\n" >> $2
 	#cd /sys/android_touch
-	#busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	#busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 
 	echo -e "\n**** zRam information:\n" >> $2
-	busybox find /sys/block/zram*/* -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	busybox find /sys/block/zram*/* -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 
 	echo -e "\n**** Uptime:\n" >> $2
 	cat /proc/uptime >> $2
@@ -1361,10 +1361,15 @@ if [ "action_debug_info_file" == "$1" ]; then
 	echo -e "\n**** Mounts:\n" >> $2
 	mount >> $2
 
-	echo -e "\n**** Governor tuneables\n" >> $2
-	GOVERNOR=`cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
-	cd /sys/devices/system/cpu/cpufreq/$GOVERNOR
-	busybox find * -print -maxdepth 0 -type f -exec tail -v -n +1 {} + >> $2
+	echo -e "\n**** Governor first cluster tuneables\n" >> $2
+	GOVERNOR0=`cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
+	cd /sys/devices/system/cpu/cpu0/cpufreq/$GOVERNOR0
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
+
+	echo -e "\n**** Governor second cluster tuneables\n" >> $2
+	GOVERNOR4=`cat /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor`
+	cd /sys/devices/system/cpu/cpu4/cpufreq/$GOVERNOR4
+	busybox find * -print -maxdepth 0 -type f -exec busybox tail -v -n +1 {} + >> $2
 
 	echo -e "\n============================================\n" >> $2
 
