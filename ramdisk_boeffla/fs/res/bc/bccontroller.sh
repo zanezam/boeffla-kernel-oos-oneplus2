@@ -628,6 +628,19 @@ fi
 
 if [ "apply_governor_profile" == "$1" ]; then
 
+	if [ "conservative - standard" == "$2" ]; then
+		echo "20" > /sys/devices/system/cpu/cpu0/cpufreq/conservative/down_threshold
+		echo "5" > /sys/devices/system/cpu/cpu0/cpufreq/conservative/freq_step
+		echo "0" > /sys/devices/system/cpu/cpu0/cpufreq/conservative/ignore_nice_load
+		echo "1" > /sys/devices/system/cpu/cpu0/cpufreq/conservative/sampling_down_factor
+		echo "200000" > /sys/devices/system/cpu/cpu0/cpufreq/conservative/sampling_rate
+		echo "200000" > /sys/devices/system/cpu/cpu0/cpufreq/conservative/sampling_rate_min
+		echo "80" > /sys/devices/system/cpu/cpu0/cpufreq/conservative/up_threshold
+
+		busybox sleep 0.5s
+		busybox sync
+	fi
+
 	if [ "ondemand - standard" == "$2" ]; then
 		echo "0" > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/ignore_nice_load
 		echo "0" > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/io_is_busy
@@ -783,6 +796,19 @@ if [ "apply_governor_profile" == "$1" ]; then
 fi
 
 if [ "apply_governor_profile_2" == "$1" ]; then
+
+	if [ "conservative - standard" == "$2" ]; then
+		echo "20" > /sys/devices/system/cpu/cpu4/cpufreq/conservative/down_threshold
+		echo "5" > /sys/devices/system/cpu/cpu4/cpufreq/conservative/freq_step
+		echo "0" > /sys/devices/system/cpu/cpu4/cpufreq/conservative/ignore_nice_load
+		echo "1" > /sys/devices/system/cpu/cpu4/cpufreq/conservative/sampling_down_factor
+		echo "200000" > /sys/devices/system/cpu/cpu4/cpufreq/conservative/sampling_rate
+		echo "200000" > /sys/devices/system/cpu/cpu4/cpufreq/conservative/sampling_rate_min
+		echo "80" > /sys/devices/system/cpu/cpu4/cpufreq/conservative/up_threshold
+
+		busybox sleep 0.5s
+		busybox sync
+	fi
 
 	if [ "ondemand - standard" == "$2" ]; then
 		echo "0" > /sys/devices/system/cpu/cpu4/cpufreq/ondemand/ignore_nice_load
