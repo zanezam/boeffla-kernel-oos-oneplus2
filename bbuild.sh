@@ -82,8 +82,10 @@ BOEFFLA_DATE=$(date +%Y%m%d)
 GIT_BRANCH=`git symbolic-ref --short HEAD`
 
 
-# overwrite settings with custom file
-. $ROOT_PATH/x-settings.sh
+# overwrite settings with custom file, if it exists
+if [ -f $ROOT_PATH/x-settings.sh ]; then
+  . $ROOT_PATH/x-settings.sh
+fi
 
 BOEFFLA_FILENAME="boeffla-kernel-$BOEFFLA_VERSION"
 
@@ -243,7 +245,7 @@ step5_patch_ramdisk()
 		
 		cd $BUILD_PATH/$OUTPUT_FOLDER
 		find -name '*.ko' -exec cp -av {} $REPACK_PATH/$MODULE_PATH/ \;
-		
+
 		# copy static modules and rename from ko_ to ko, only if there are some
 		if [ -f $BUILD_PATH/modules_boeffla/*.ko_ ]; then
 			cp $BUILD_PATH/modules_boeffla/* $REPACK_PATH/$MODULE_PATH
