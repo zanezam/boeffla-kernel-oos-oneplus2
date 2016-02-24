@@ -33,7 +33,7 @@ BOOT_PARTITION="/dev/block/bootdevice/by-name/boot"
 SYSTEM_PARTITION="/dev/block/bootdevice/by-name/system"
 
 ASSERT_1="OnePlus2"
-ASSERT_2=""
+ASSERT_2="oneplus2"
 ASSERT_3=""
 ASSERT_4=""
 ASSERT_5=""
