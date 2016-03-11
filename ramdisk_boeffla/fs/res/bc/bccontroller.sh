@@ -491,8 +491,28 @@ fi
 
 if [ "apply_cpu_hotplug_profile_2" == "$1" ] || [ "revert_big_cpu_cluster_online" == "$1" ]; then
 
+	echo 0 > /sys/kernel/boeffla_config_mode/enabled
+
 	chmod 666 /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
 	chmod 666 /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
+
+	# If we revert the previously onlined cluster 2, bring it down now via core_ctl
+	# (OOS implementation - core_ctl is very sensitive, we cannot write to cpu online sysfs,
+	#  so this needs to be exactly like that)
+	if [ "revert_big_cpu_cluster_online" == "$1" ]; then
+		echo 0 > /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
+		echo 0 > /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
+
+		# wait till cluster is down
+		while [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ] ; do
+		  /sbin/busybox sleep 0.1
+		done
+
+		# reinitialize core_ctl to stock settings now,
+		# otherwise next settings do not work properly
+		echo 4 > /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
+		echo 2 > /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
+	fi
 
 	if [ "min=0, max=0" == "$2" ]; then
 		echo 0 > /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
@@ -1644,7 +1664,6 @@ if [ "bring_big_cpu_cluster_online" == "$1" ]; then
 	
 	# if cpu core 4 is online, we are done
 	if [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]; then
-		echo 0 > /sys/kernel/boeffla_config_mode/enabled
 		echo "bring_big_cpu_cluster_online: ok"
 		exit 0
 	fi
@@ -1655,7 +1674,6 @@ if [ "bring_big_cpu_cluster_online" == "$1" ]; then
 
 	# if cpu core 4 not yet online, wait 100 ms
 	if [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]; then
-		echo 0 > /sys/kernel/boeffla_config_mode/enabled
 		echo "bring_big_cpu_cluster_online: ok - 1"
 		exit 0
 	fi
@@ -1664,7 +1682,6 @@ if [ "bring_big_cpu_cluster_online" == "$1" ]; then
 
 	# if cpu core 4 not yet online, wait another 200 ms
 	if [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]; then
-		echo 0 > /sys/kernel/boeffla_config_mode/enabled
 		echo "bring_big_cpu_cluster_online: ok - 2"
 		exit 0
 	fi
@@ -1673,7 +1690,6 @@ if [ "bring_big_cpu_cluster_online" == "$1" ]; then
 
 	# if cpu core 4 not yet online, wait another final 200 ms
 	if [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]; then
-		echo 0 > /sys/kernel/boeffla_config_mode/enabled
 		echo "bring_big_cpu_cluster_online: ok - 3"
 		exit 0
 	fi
@@ -1682,12 +1698,10 @@ if [ "bring_big_cpu_cluster_online" == "$1" ]; then
 
 	# final check
 	if [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]; then
-		echo 0 > /sys/kernel/boeffla_config_mode/enabled
 		echo "bring_big_cpu_cluster_online: ok - 4"
 		exit 0
 	fi
 
-	echo 0 > /sys/kernel/boeffla_config_mode/enabled
 	echo "bring_big_cpu_cluster_online: failed"
 	exit 0
 fi
