@@ -503,10 +503,14 @@ if [ "apply_cpu_hotplug_profile_2" == "$1" ] || [ "revert_big_cpu_cluster_online
 		echo 0 > /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
 		echo 0 > /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
 
-		# wait till cluster is down
-		while [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ] ; do
-		  /sbin/busybox sleep 0.1
+		# wait up to 2 secs for cluster to go down
+		i=0
+		while [ $i -le 10 ] && [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]
+		do
+			let i=$i+1
+			/sbin/busybox sleep 0.2
 		done
+		echo "apply_cpu_hotplug_profile_2/revert_big_cpu_cluster_online: count $i"
 
 		# reinitialize core_ctl to stock settings now,
 		# otherwise next settings do not work properly
@@ -1662,46 +1666,15 @@ if [ "bring_big_cpu_cluster_online" == "$1" ]; then
 	chmod 444 /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
 	chmod 444 /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
 	
-	# if cpu core 4 is online, we are done
-	if [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]; then
-		echo "bring_big_cpu_cluster_online: ok"
-		exit 0
-	fi
+	# wait up to 2 secs for cluster to come up
+	i=0
+	while [ $i -le 10 ] && [ ! -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]
+	do
+		let i=$i+1
+		/sbin/busybox sleep 0.2
+		echo 1 > /sys/devices/system/cpu/cpu4/online
+	done
+	echo "bring_big_cpu_cluster_online: count $i"
 
-	# force CPU4 now to come online
-	# (maybe thermal or bcl was triggered, so core_ctl did not try to enable it)
-	echo 1 > /sys/devices/system/cpu/cpu4/online
-
-	# if cpu core 4 not yet online, wait 100 ms
-	if [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]; then
-		echo "bring_big_cpu_cluster_online: ok - 1"
-		exit 0
-	fi
-
-	busybox sleep 0.1s
-
-	# if cpu core 4 not yet online, wait another 200 ms
-	if [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]; then
-		echo "bring_big_cpu_cluster_online: ok - 2"
-		exit 0
-	fi
-
-	busybox sleep 0.2s
-
-	# if cpu core 4 not yet online, wait another final 200 ms
-	if [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]; then
-		echo "bring_big_cpu_cluster_online: ok - 3"
-		exit 0
-	fi
-
-	busybox sleep 0.2s
-
-	# final check
-	if [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]; then
-		echo "bring_big_cpu_cluster_online: ok - 4"
-		exit 0
-	fi
-
-	echo "bring_big_cpu_cluster_online: failed"
 	exit 0
 fi
