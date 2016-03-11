@@ -23,8 +23,6 @@
 	BOEFFLA_STARTCONFIG_DONE="/data/.boeffla/startconfig_done"
 	CWM_RESET_ZIP="boeffla-config-reset-v4.zip"
 	INITD_ENABLER="/data/.boeffla/enable-initd"
-	BUSYBOX_ENABLER="/data/.boeffla/enable-busybox"
-	FRANDOM_ENABLER="/data/.boeffla/enable-frandom"
 	PERMISSIVE_ENABLER="/data/.boeffla/enable-permissive"
 
 # If not yet existing, create a boeffla-kernel-data folder on sdcard 
@@ -67,10 +65,6 @@
 # remove any obsolete Boeffla-Config V2 startconfig done file
 	/sbin/busybox rm -f $BOEFFLA_STARTCONFIG_DONE
 
-# remove not used configuration files for frandom and busybox
-	/sbin/busybox rm -f $BUSYBOX_ENABLER
-	/sbin/busybox rm -f $FRANDOM_ENABLER
-	
 # Apply Boeffla-Kernel default settings
 
 	# Sdcard buffer tweaks default to 1024 kb
@@ -79,9 +73,9 @@
 
 	# Ext4 tweaks default to on
 	/sbin/busybox sync
-	mount -o remount,commit=20,noatime $CACHE_DEVICE /cache
+	/sbin/busybox mount -o remount,commit=20,noatime $CACHE_DEVICE /cache
 	/sbin/busybox sync
-	mount -o remount,commit=20,noatime $DATA_DEVICE /data
+	/sbin/busybox mount -o remount,commit=20,noatime $DATA_DEVICE /data
 	/sbin/busybox sync
 	
 	echo $(date) Boeffla-Kernel default settings applied >> $BOEFFLA_LOGFILE
