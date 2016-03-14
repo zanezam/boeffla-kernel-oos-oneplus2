@@ -498,24 +498,23 @@ if [ "apply_cpu_hotplug_profile_2" == "$1" ] || [ "revert_big_cpu_cluster_online
 	chmod 666 /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
 	chmod 666 /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
 
-	# If we revert the previously onlined cluster 2, bring it down now via core_ctl
-	# (OOS implementation - core_ctl is very sensitive, we cannot write to cpu online sysfs,
-	#  so this needs to be exactly like that)
+	# if we should bring down cpu cluster 2 now, do exactly the following sequence:
+	# - first instruct core_ctl (or msm_core_ctl) to disable all cores
+	# - second bring down all cores via sysfs as core_ctl sometimes is lazy under some side condition
+	#   Note: core_ctl in OOS is extremely sensitive, so it must be done exactly this way to not have reboots
 	if [ "revert_big_cpu_cluster_online" == "$1" ]; then
+		# bring down via core_ctl
 		echo 0 > /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
 		echo 0 > /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
 
-		# wait up to 2 secs for cluster to go down
-		i=0
-		while [ $i -le 10 ] && [ -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]
-		do
-			let i=$i+1
-			/sbin/busybox sleep 0.2
-		done
-		echo "apply_cpu_hotplug_profile_2/revert_big_cpu_cluster_online: count $i"
+		# now bring down via sysfs
+		echo 0 > /sys/devices/system/cpu/cpu4/online
+		echo 0 > /sys/devices/system/cpu/cpu5/online
+		echo 0 > /sys/devices/system/cpu/cpu6/online
+		echo 0 > /sys/devices/system/cpu/cpu7/online
 
 		# reinitialize core_ctl to stock settings now,
-		# otherwise next settings do not work properly
+		# otherwise next settings do not work properly (for whatever unkown reasons)
 		echo 4 > /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
 		echo 2 > /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
 	fi
@@ -1659,24 +1658,24 @@ fi
 if [ "bring_big_cpu_cluster_online" == "$1" ]; then
 	echo 1 > /sys/kernel/boeffla_config_mode/enabled
 
+	# To bring up cpu cluster 2 now, do exactly the following sequence:
+	# - first instruct core_ctl (or msm_core_ctl) to enable all cores
+	# - second bring up all cores via sysfs as core_ctl sometimes is lazy under some side condition
+	#   Note: core_ctl in OOS is extremely sensitive, so it must be done exactly this way to not have reboots
+
+	# bring up via core_ctl
 	chmod 666 /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
 	chmod 666 /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
-
 	echo 4 > /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
 	echo 4 > /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
-
 	chmod 444 /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
 	chmod 444 /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
 	
-	# wait up to 2 secs for cluster to come up
-	i=0
-	while [ $i -le 10 ] && [ ! -e /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq_hardlimit ]
-	do
-		let i=$i+1
-		/sbin/busybox sleep 0.2
-		echo 1 > /sys/devices/system/cpu/cpu4/online
-	done
-	echo "bring_big_cpu_cluster_online: count $i"
+	# now bring up via sysfs
+	echo 1 > /sys/devices/system/cpu/cpu4/online
+	echo 1 > /sys/devices/system/cpu/cpu5/online
+	echo 1 > /sys/devices/system/cpu/cpu6/online
+	echo 1 > /sys/devices/system/cpu/cpu7/online
 
 	exit 0
 fi
