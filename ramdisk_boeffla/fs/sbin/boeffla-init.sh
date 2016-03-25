@@ -116,25 +116,14 @@
 	echo $(date) Rom boot trigger detected, waiting a few more seconds... >> $BOEFFLA_LOGFILE
 	/sbin/busybox sleep 20
 
-# Now wait for the core_ctl module being loaded
-# (by checking existance of min cpu setting for cpu4)
+# Now wait for the core_ctl module being initialized
+# (by checking the min cpu setting for cpu4)
 	echo $(date) Checking for core_ctl trigger... >> $BOEFFLA_LOGFILE
-	while ! [ -f /sys/devices/system/cpu/cpu4/core_ctl/min_cpus ] ; do
+	while ! grep "2" /sys/devices/system/cpu/cpu4/core_ctl/min_cpus ; do
 	  /sbin/busybox sleep 1
 	done
 	echo $(date) core_ctl trigger detected, waiting a few more seconds... >> $BOEFFLA_LOGFILE
 	/sbin/busybox sleep 2
-
-# Initialize msm_core_control with parameters from OOS for both CPUs
-	echo 4 > /sys/devices/system/cpu/cpu0/core_ctl/min_cpus
-	echo 4 > /sys/devices/system/cpu/cpu0/core_ctl/max_cpus
-	chmod 444 /sys/devices/system/cpu/cpu0/core_ctl/min_cpus
-	chmod 444 /sys/devices/system/cpu/cpu0/core_ctl/max_cpus
-
-	echo 2 > /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
-	echo 4 > /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
-	chmod 644 /sys/devices/system/cpu/cpu4/core_ctl/min_cpus
-	chmod 644 /sys/devices/system/cpu/cpu4/core_ctl/max_cpus
 
 # execute OOS rom scripts one time only now
 	/system/bin/sh /system/etc/msm8994_hmp.sh.bak
