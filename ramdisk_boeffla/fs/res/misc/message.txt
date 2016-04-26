@@ -1,1 +1,0 @@
-Please note:<br>On current OnePlus 2 kernels, usage of custom governors can lead to instabilities. These governors are still experimental.<br><br>Please use interactive governor only if you need a fully stable phone.
