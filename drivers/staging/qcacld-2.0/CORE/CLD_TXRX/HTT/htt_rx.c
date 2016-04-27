@@ -1415,6 +1415,9 @@ htt_rx_amsdu_rx_in_order_pop_ll(
             }
         }
 
+        /* Update checksum result */
+        htt_set_checksum_result_ll(pdev, msdu, rx_desc);
+
         /* check if this is the last msdu */
         if (msdu_count) {
             msg_word += HTT_RX_IN_ORD_PADDR_IND_MSDU_DWORDS;
@@ -2396,6 +2399,13 @@ htt_rx_hash_deinit(struct htt_pdev_t *pdev)
                  (struct htt_rx_hash_entry *)((char *)list_iter -
                                                pdev->rx_ring.listnode_offset);
             if (hash_entry->netbuf) {
+#ifdef DEBUG_DMA_DONE
+                adf_nbuf_unmap(pdev->osdev, hash_entry->netbuf,
+                                ADF_OS_DMA_BIDIRECTIONAL);
+#else
+                adf_nbuf_unmap(pdev->osdev, hash_entry->netbuf,
+                                ADF_OS_DMA_FROM_DEVICE);
+#endif
                 adf_nbuf_free(hash_entry->netbuf);
                 hash_entry->paddr = 0;
             }
@@ -2531,9 +2541,11 @@ htt_rx_attach(struct htt_pdev_t *pdev)
         pdev->rx_buff_list = adf_os_mem_alloc(pdev->osdev,
                                          HTT_RX_RING_BUFF_DBG_LIST *
                                          sizeof(struct rx_buf_debug));
-        if (!pdev->rx_buff_list) {
+        if (!pdev->rx_buff_list)
             adf_os_print("HTT: debug RX buffer allocation failed\n");
-        }
+        else
+            adf_os_mem_set(pdev->rx_buff_list, 0, HTT_RX_RING_BUFF_DBG_LIST *
+                                                  sizeof(struct rx_buf_debug));
 #endif
         htt_rx_ring_fill_n(pdev, pdev->rx_ring.fill_level);
 
