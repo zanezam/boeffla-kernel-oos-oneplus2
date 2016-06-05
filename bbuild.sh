@@ -15,7 +15,7 @@ EXTENDED_CMDLINE="androidboot.selinux=permissive"
 
 TOOLCHAIN="/opt/toolchains/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
 
-COMPILE_DTB="y"
+COMPILE_DTB="n"
 MODULES_IN_SYSTEM="y"
 KERNEL_SAMSUNG="n"
 OUTPUT_FOLDER=""
@@ -176,7 +176,7 @@ step3_compile()
 	fi
 
 	# copy Image to zImage (as this kernel uses an uncompressed image)
-	cp $BUILD_PATH/$OUTPUT_FOLDER/arch/arm64/boot/Image $BUILD_PATH/$OUTPUT_FOLDER/arch/arm64/boot/zImage
+	cp $BUILD_PATH/$OUTPUT_FOLDER/arch/arm64/boot/Image.gz-dtb $BUILD_PATH/$OUTPUT_FOLDER/arch/arm64/boot/zImage
 
 	# compile dtb if required
 	if [ "y" == "$COMPILE_DTB" ]; then
