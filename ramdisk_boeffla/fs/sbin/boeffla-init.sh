@@ -24,6 +24,7 @@
 	CWM_RESET_ZIP="boeffla-config-reset-v5.zip"
 	INITD_ENABLER="/data/.boeffla/enable-initd"
 	PERMISSIVE_ENABLER="/data/.boeffla/enable-permissive"
+	DOZE_DISABLER="/data/.boeffla/disable-doze"
 
 # If not yet existing, create a boeffla-kernel-data folder on sdcard 
 # which is used for many purposes,
@@ -198,6 +199,12 @@
 		/sbin/busybox chmod 666 $CWM_RESET_ZIP_TARGET
 
 		echo $(date) Recovery reset zip copied >> $BOEFFLA_LOGFILE
+	fi
+
+# disable doze if configured
+	if [ -f $DOZE_DISABLER ]; then
+		dumpsys deviceidle disable
+		echo $(date) "Doze disabled" >> $BOEFFLA_LOGFILE
 	fi
 
 # Remove SELinux enforce lock to allow SELinux mode changes from now on
