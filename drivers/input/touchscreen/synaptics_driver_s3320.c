@@ -47,6 +47,8 @@
 #include <linux/timer.h>
 #include <linux/time.h>
 
+#include <linux/boeffla_powerkey_helper.h>
+
 #ifdef CONFIG_FB
 #include <linux/fb.h>
 #include <linux/notifier.h>
@@ -216,8 +218,6 @@ static struct workqueue_struct *synaptics_report = NULL;
 static struct proc_dir_entry *prEntry_tp = NULL;
 static struct proc_dir_entry *prEntry_sweep_wake_tap = NULL;
 static struct proc_dir_entry *prEntry_sweep_wake_tap_implemented = NULL;
-static struct input_dev * boeffla_syn_pwrdev;
-static DEFINE_MUTEX(boeffla_syn_pwrkeyworklock);
 void qpnp_hap_ignore_next_request(void);
 
 
@@ -388,25 +388,6 @@ struct synaptics_optimize_data{
 	const struct i2c_device_id *dev_id;
 };
 static struct synaptics_optimize_data optimize_data;
-
-
-static void boeffla_syn_presspwr(struct work_struct * boeffla_syn_presspwr_work)
-{
-	if (!mutex_trylock(&boeffla_syn_pwrkeyworklock))
-		return;
-
-	input_event(boeffla_syn_pwrdev, EV_KEY, KEY_POWER, 1);
-	input_event(boeffla_syn_pwrdev, EV_SYN, 0, 0);
-	msleep(60);
-
-	input_event(boeffla_syn_pwrdev, EV_KEY, KEY_POWER, 0);
-	input_event(boeffla_syn_pwrdev, EV_SYN, 0, 0);
-	msleep(60);
-
-    mutex_unlock(&boeffla_syn_pwrkeyworklock);
-	return;
-}
-static DECLARE_WORK(boeffla_syn_presspwr_work, boeffla_syn_presspwr);
 
 
 static void synaptics_ts_probe_func(struct work_struct *w)
@@ -1283,7 +1264,7 @@ static void gesture_judge(struct synaptics_ts_data *ts)
 		else
 		{
 			// press powerkey
-			schedule_work(&boeffla_syn_presspwr_work);
+			boeffla_press_powerkey();
 		}
 	}
 	else
@@ -3799,30 +3780,10 @@ static int fb_notifier_callback(struct notifier_block *self, unsigned long event
 
 static int __init tpd_driver_init(void)
 {
-	int rc = 0;
-
 	printk("Synaptics:%s is called\n", __func__);
 	if( i2c_add_driver(&tpd_i2c_driver)!= 0 ){
 		TPDTM_DMESG("unable to add i2c driver.\n");
 		return -1;
-	}
-
-	// allocate and register input device for sending power key events
-	boeffla_syn_pwrdev = input_allocate_device();
-	if (!boeffla_syn_pwrdev)
-	{
-		pr_err("Can't allocate suspend autotest power button\n");
-		return -EFAULT;
-	}
-
-	input_set_capability(boeffla_syn_pwrdev, EV_KEY, KEY_POWER);
-	boeffla_syn_pwrdev->name = "boeffla_syn_pwrkey";
-	boeffla_syn_pwrdev->phys = "boeffla_syn_pwrkey/input0";
-	rc = input_register_device(boeffla_syn_pwrdev);
-	if (rc)
-	{
-		pr_err("%s: input_register_device err=%d\n", __func__, rc);
-		return -EFAULT;
 	}
 
 	return 0;
