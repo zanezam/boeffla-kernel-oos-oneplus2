@@ -7,6 +7,7 @@
 wm97xx-ts-y := wm97xx-core.o
 
 obj-$(CONFIG_TOUCHSCREEN_SWEEP2SLEEP) += sweep2sleep.o
+obj-$(CONFIG_BOEFFLA_POWERKEY_HELPER) += boeffla_powerkey_helper.o
 
 obj-$(CONFIG_TOUCHSCREEN_88PM860X)	+= 88pm860x-ts.o
 obj-$(CONFIG_TOUCHSCREEN_AD7877)	+= ad7877.o

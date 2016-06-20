@@ -1095,4 +1095,7 @@ config TOUCHSCREEN_SWEEP2SLEEP
 	bool "Enable kernel support for Sweep2Sleep"
 	default n
 
+config BOEFFLA_POWERKEY_HELPER
+	bool "Enable Boeffla Powerkey helper"
+	default n
 endif
