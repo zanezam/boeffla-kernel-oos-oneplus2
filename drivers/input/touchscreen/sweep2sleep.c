@@ -30,6 +30,7 @@
 #include <linux/lcd_notify.h>
 #include <linux/hrtimer.h>
 #include <linux/jiffies.h>
+#include <linux/boeffla_powerkey_helper.h>
 
 
 /*****************************************/
@@ -126,7 +127,6 @@ static int DYNAMIC_X_SIZE3[DYNAMIC_BANKS] = {200};
 
 int s2s = 0;
 static int debug = 0;
-static int pwrkey_dur = 60;
 static int touch_x = 0;
 static int touch_y = 0;
 static int statusBarWithinTime = 0;
@@ -151,8 +151,6 @@ static int dynamic_next_y_min = 0;
 static int dynamic_next_y_max = 0;
 
 static struct notifier_block s2s_lcd_notif;
-static struct input_dev * sweep2sleep_pwrdev;
-static DEFINE_MUTEX(pwrkeyworklock);
 static struct workqueue_struct *s2s_input_wq;
 static struct work_struct s2s_input_work;
 static struct delayed_work statusBarTimer;
@@ -161,34 +159,6 @@ static struct delayed_work statusBarTimer;
 /*****************************************/
 // Internal functions
 /*****************************************/
-
-/* PowerKey work function */
-static void sweep2sleep_presspwr(struct work_struct * sweep2sleep_presspwr_work) 
-{
-	if (!mutex_trylock(&pwrkeyworklock))
-		return;
-	
-	input_event(sweep2sleep_pwrdev, EV_KEY, KEY_POWER, 1);
-	input_event(sweep2sleep_pwrdev, EV_SYN, 0, 0);
-	msleep(pwrkey_dur);
-	
-	input_event(sweep2sleep_pwrdev, EV_KEY, KEY_POWER, 0);
-	input_event(sweep2sleep_pwrdev, EV_SYN, 0, 0);
-	msleep(pwrkey_dur);
-    
-    mutex_unlock(&pwrkeyworklock);
-	return;
-}
-static DECLARE_WORK(sweep2sleep_presspwr_work, sweep2sleep_presspwr);
-
-
-/* PowerKey trigger */
-static void sweep2sleep_pwrtrigger(void) 
-{
-	schedule_work(&sweep2sleep_presspwr_work);
-
-    return;
-}
 
 
 // status bar timer work
@@ -236,7 +206,7 @@ static void doubleTapStatusBar(int x, int y)
 	// screen and reset the flag; otherwise restart timer
 	if (statusBarWithinTime)
 	{
-		sweep2sleep_pwrtrigger();
+		boeffla_press_powerkey();
 		statusBarWithinTime = 0;
 	}
 	else
@@ -282,7 +252,7 @@ static void detect_sweep2sleep(int x, int y)
 							if (exec_count) 
 							{
 								pr_info(LOGTAG"Sweep2sleep static activated\n");
-								sweep2sleep_pwrtrigger();
+								boeffla_press_powerkey();
 								exec_count = false;
 								sweep2sleep_reset();
 							}
@@ -339,7 +309,7 @@ static void detect_sweep2sleep(int x, int y)
 							if (exec_count) 
 							{
 								pr_info(LOGTAG"Sweep2sleep dynamic activated\n");
-								sweep2sleep_pwrtrigger();
+								boeffla_press_powerkey();
 								exec_count = false;
 								sweep2sleep_reset();
 							}
@@ -618,27 +588,11 @@ static int __init sweep2sleep_init(void)
 {
 	int rc = 0;
 
-	sweep2sleep_pwrdev = input_allocate_device();
-	if (!sweep2sleep_pwrdev) 
-	{
-		pr_err(LOGTAG"Can't allocate suspend autotest power button\n");
-		return -EFAULT;
-	}
-
-	input_set_capability(sweep2sleep_pwrdev, EV_KEY, KEY_POWER);
-	sweep2sleep_pwrdev->name = "s2s_pwrkey";
-	sweep2sleep_pwrdev->phys = "s2s_pwrkey/input0";
-	rc = input_register_device(sweep2sleep_pwrdev);
-	if (rc) {
-		pr_err(LOGTAG"%s: input_register_device err=%d\n", __func__, rc);
-		goto err1;
-	}
-
 	s2s_input_wq = create_workqueue("s2siwq");
 	if (!s2s_input_wq) 
 	{
 		pr_err(LOGTAG"%s: Failed to create s2siwq workqueue\n", __func__);
-		goto err2;
+		goto err1;
 	}
 	
 	INIT_WORK(&s2s_input_work, s2s_input_callback);
@@ -646,49 +600,49 @@ static int __init sweep2sleep_init(void)
 	if (rc)
 	{
 		pr_err(LOGTAG"%s: Failed to register s2s_input_handler\n", __func__);
-		goto err3;
+		goto err2;
 	}
 	
 	s2s_lcd_notif.notifier_call = lcd_notifier_callback;
 	if (lcd_register_client(&s2s_lcd_notif) != 0) 
 	{
 		pr_err(LOGTAG"%s: Failed to register lcd callback\n", __func__);
-		goto err4;
+		goto err2;
 	}
 
 	android_touch_kobj = kobject_create_and_add("android_touch", NULL) ;
 	if (android_touch_kobj == NULL) 
 	{
 		pr_err(LOGTAG"%s: android_touch_kobj create_and_add failed\n", __func__);
-		goto err4;
+		goto err2;
 	}
 
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2sleep.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for sweep2sleep\n", __func__);
-		goto err4;
+		goto err2;
 	}
 	
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2sleep_debug.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for sweep2sleep_debug\n", __func__);
-		goto err4;
+		goto err2;
 	}
 	
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2sleep_version.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for sweep2sleep_version\n", __func__);
-		goto err4;
+		goto err2;
 	}
 
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2sleep_implemented.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for sweep2sleep_implemented\n", __func__);
-		goto err4;
+		goto err2;
 	}
 
 	// Initialize delayed work for status bar timer
@@ -696,14 +650,10 @@ static int __init sweep2sleep_init(void)
 	
 	return 0;
 
-err4:
-	input_unregister_handler(&s2s_input_handler);
-err3:
-	destroy_workqueue(s2s_input_wq);
 err2:
-	input_unregister_device(sweep2sleep_pwrdev);
+	input_unregister_handler(&s2s_input_handler);
 err1:
-	input_free_device(sweep2sleep_pwrdev);
+	destroy_workqueue(s2s_input_wq);
 	return -EFAULT;
 }
 
@@ -712,8 +662,6 @@ static void __exit sweep2sleep_exit(void)
 {
 	input_unregister_handler(&s2s_input_handler);
 	destroy_workqueue(s2s_input_wq);
-	input_unregister_device(sweep2sleep_pwrdev);
-	input_free_device(sweep2sleep_pwrdev);
 
 	return;
 }
