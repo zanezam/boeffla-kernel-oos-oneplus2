@@ -11,7 +11,7 @@
 #######################################
 
 BOEFFLA_VERSION="Boeffla-Kernel"
-EXTENDED_CMDLINE="androidboot.selinux=permissive"
+EXTENDED_CMDLINE=""
 
 TOOLCHAIN="/opt/toolchains/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
 
