@@ -205,7 +205,7 @@ step4_prepare_anykernel()
 	{
 		# copy dtb (if we have one)
 		if [ "y" == "$COMPILE_DTB" ]; then
-			cp $BUILD_PATH/$OUTPUT_FOLDER/arch64/arm/boot/dt.img $REPACK_PATH/dtb
+			cp $BUILD_PATH/$OUTPUT_FOLDER/arch/arm64/boot/dt.img $REPACK_PATH/dtb
 		fi
 
 		# copy modules (if required)
@@ -334,13 +334,13 @@ stepR_rewrite_config()
 
 	# copy defconfig, run make oldconfig and copy it back
 	cd $SOURCE_PATH
-	cp arch/arm/configs/$DEFCONFIG .config
+	cp arch/arm64/configs/$DEFCONFIG .config
 	make oldconfig
-	cp .config arch/arm/configs/$DEFCONFIG
+	cp .config arch/arm64/configs/$DEFCONFIG
 	make mrproper
 
 	# commit change
-	git add arch/arm/configs/$DEFCONFIG
+	git add arch/arm64/configs/$DEFCONFIG
 	git commit
 }
 
