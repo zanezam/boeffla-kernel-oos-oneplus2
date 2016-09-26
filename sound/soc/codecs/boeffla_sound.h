@@ -1,7 +1,7 @@
 /*
- * Author: andip71, 15.09.2015
+ * Author: andip71
  * 
- * Version 1.0.0
+ * Version 1.1.0
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -46,7 +46,7 @@ unsigned int boeffla_sound_hook_tomtom_write(unsigned int reg, unsigned int valu
 
 // Boeffla sound general
 #define BOEFFLA_SOUND_DEFAULT 	0
-#define BOEFFLA_SOUND_VERSION 	"1.0.0"
+#define BOEFFLA_SOUND_VERSION 	"1.1.0"
 #define DEBUG_DEFAULT 			0
 
 // headphone levels
@@ -62,8 +62,12 @@ unsigned int boeffla_sound_hook_tomtom_write(unsigned int reg, unsigned int valu
 #define SPEAKER_MAX 			30
 
 // Microphone control
-#define MICLEVEL_DEFAULT		0
-#define MICLEVEL_REG_OFFSET		0
-#define MICLEVEL_MIN			-30
-#define MICLEVEL_MAX			30
+#define MICLEVEL_DEFAULT_GENERAL		0
+#define MICLEVEL_REG_OFFSET_GENERAL		0
+#define MICLEVEL_MIN_GENERAL			0
+#define MICLEVEL_MAX_GENERAL			31
 
+#define MICLEVEL_DEFAULT_CAM		0
+#define MICLEVEL_REG_OFFSET_CAM		0
+#define MICLEVEL_MIN_CAM			0
+#define MICLEVEL_MAX_CAM			31

@@ -1,7 +1,7 @@
 /*
- * Author: andip71, 15.09.2015
+ * Author: andip71
  * 
- * Version 1.0.0
+ * Version 1.1.0
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -17,6 +17,9 @@
 /*
  * Change log:
  * 
+ * 1.1.0 (26.09.2016)
+ *   - Add mic gain control for general and camera microphones
+ *
  * 1.0.0 (15.09.2015)
  *   - Initial version for OnePlus Two
  * 
@@ -48,7 +51,8 @@ static int headphone_volume_l;
 static int headphone_volume_r;
 static int speaker_volume_l;
 static int speaker_volume_r;
-//static int mic_level;
+static int mic_level_general;
+static int mic_level_cam;
 
 
 /*****************************************/
@@ -99,12 +103,18 @@ unsigned int boeffla_sound_hook_tomtom_write(unsigned int reg, unsigned int valu
 			break;
 		}
 
-//		case TOMTOM_A_CDC_TX7_VOL_CTL_GAIN: // mic level general
-//		{
-//			value = mic_level;
-//			break;
-//		}
-		
+		case TOMTOM_A_CDC_TX7_VOL_CTL_GAIN: // mic level general
+		{
+			value = mic_level_general;
+			break;
+		}
+
+		case TOMTOM_A_CDC_TX6_VOL_CTL_GAIN: // mic level cam
+		{
+			value = mic_level_cam;
+			break;
+		}
+
 		default:
 			break;
 	}
@@ -124,7 +134,8 @@ static void reset_boeffla_sound(void)
 	headphone_volume_r = HEADPHONE_DEFAULT;
 	speaker_volume_l = SPEAKER_DEFAULT;
 	speaker_volume_r = SPEAKER_DEFAULT;
-//	mic_level = MICLEVEL_DEFAULT;
+	mic_level_general = MICLEVEL_DEFAULT_GENERAL;
+	mic_level_cam = MICLEVEL_DEFAULT_CAM;
 
 	if (debug)
 		printk("Boeffla-sound: boeffla sound reset done\n");
@@ -140,7 +151,8 @@ static void reset_audio_hub(void)
 	tomtom_write_no_hook(codec, TOMTOM_A_CDC_RX3_VOL_CTL_B2_CTL, SPEAKER_DEFAULT + SPEAKER_REG_OFFSET);
 	tomtom_write_no_hook(codec, TOMTOM_A_CDC_RX7_VOL_CTL_B2_CTL, SPEAKER_DEFAULT + SPEAKER_REG_OFFSET);
 
-//	tomtom_write_no_hook(codec, TOMTOM_A_CDC_TX7_VOL_CTL_GAIN, MICLEVEL_DEFAULT + MICLEVEL_REG_OFFSET);
+	tomtom_write_no_hook(codec, TOMTOM_A_CDC_TX7_VOL_CTL_GAIN, MICLEVEL_DEFAULT_GENERAL + MICLEVEL_REG_OFFSET_GENERAL);
+	tomtom_write_no_hook(codec, TOMTOM_A_CDC_TX6_VOL_CTL_GAIN, MICLEVEL_DEFAULT_CAM + MICLEVEL_REG_OFFSET_CAM);
 
 	if (debug)
 		printk("Boeffla-sound: wcd9320 audio hub reset done\n");
@@ -311,13 +323,11 @@ static ssize_t speaker_volume_store(struct device *dev, struct device_attribute 
 
 */
 
-/* this is currently not yet implemented...
-
 // Microphone level general
 
 static ssize_t mic_level_general_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, "Mic level general %d\n", mic_level);
+	return sprintf(buf, "Mic level general %d\n", mic_level_general);
 }
 
 
@@ -338,27 +348,66 @@ static ssize_t mic_level_general_store(struct device *dev, struct device_attribu
 		return -EINVAL;
 
 	// check whether values are within the valid ranges and adjust accordingly
-	if (val > MICLEVEL_MAX)
-		val = MICLEVEL_MAX;
+	if (val > MICLEVEL_MAX_GENERAL)
+		val = MICLEVEL_MAX_GENERAL;
 
-	if (val < MICLEVEL_MIN)
-		val = MICLEVEL_MIN;
+	if (val < MICLEVEL_MIN_GENERAL)
+		val = MICLEVEL_MIN_GENERAL;
 
 	// store new value
-	mic_level = val;
+	mic_level_general = val;
 		
 	// set new value
-	tomtom_write_no_hook(codec, TOMTOM_A_CDC_TX4_VOL_CTL_GAIN, 
-		mic_level + MICLEVEL_REG_OFFSET);
+	tomtom_write_no_hook(codec, TOMTOM_A_CDC_TX7_VOL_CTL_GAIN, mic_level_general + MICLEVEL_REG_OFFSET_GENERAL);
 
 	// print debug info
 	if (debug)
-		printk("Boeffla-sound: Mic level general %d\n", mic_level);
+		printk("Boeffla-sound: Mic level general %d\n", mic_level_general);
 
 	return count;
 }
 
-*/
+static ssize_t mic_level_cam_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "Mic level cam %d\n", mic_level_cam);
+}
+
+
+static ssize_t mic_level_cam_store(struct device *dev, struct device_attribute *attr,
+					const char *buf, size_t count)
+{
+	unsigned int ret = -EINVAL;
+	unsigned int val;
+
+	// Terminate if boeffla sound is not enabled
+	if (!boeffla_sound)
+		return count;
+
+	// read value for mic level from input buffer
+	ret = sscanf(buf, "%d", &val);
+
+	if (ret != 1)
+		return -EINVAL;
+
+	// check whether values are within the valid ranges and adjust accordingly
+	if (val > MICLEVEL_MAX_CAM)
+		val = MICLEVEL_MAX_CAM;
+
+	if (val < MICLEVEL_MIN_CAM)
+		val = MICLEVEL_MIN_CAM;
+
+	// store new value
+	mic_level_cam = val;
+
+	// set new value
+	tomtom_write_no_hook(codec, TOMTOM_A_CDC_TX6_VOL_CTL_GAIN, mic_level_cam + MICLEVEL_REG_OFFSET_CAM);
+
+	// print debug info
+	if (debug)
+		printk("Boeffla-sound: Mic level cam %d\n", mic_level_cam);
+
+	return count;
+}
 
 
 // Debug status
@@ -500,7 +549,8 @@ static ssize_t version_show(struct device *dev, struct device_attribute *attr, c
 static DEVICE_ATTR(boeffla_sound, S_IRUGO | S_IWUGO, boeffla_sound_show, boeffla_sound_store);
 static DEVICE_ATTR(headphone_volume, S_IRUGO | S_IWUGO, headphone_volume_show, headphone_volume_store);
 //static DEVICE_ATTR(speaker_volume, S_IRUGO | S_IWUGO, speaker_volume_show, speaker_volume_store);
-//static DEVICE_ATTR(mic_level_general, S_IRUGO | S_IWUGO, mic_level_general_show, mic_level_general_store);
+static DEVICE_ATTR(mic_level_general, S_IRUGO | S_IWUGO, mic_level_general_show, mic_level_general_store);
+static DEVICE_ATTR(mic_level_cam, S_IRUGO | S_IWUGO, mic_level_cam_show, mic_level_cam_store);
 static DEVICE_ATTR(debug, S_IRUGO | S_IWUGO, debug_show, debug_store);
 static DEVICE_ATTR(register_dump, S_IRUGO | S_IWUGO, register_dump_show, NULL);
 static DEVICE_ATTR(version, S_IRUGO | S_IWUGO, version_show, NULL);
@@ -510,7 +560,8 @@ static struct attribute *boeffla_sound_attributes[] = {
 	&dev_attr_boeffla_sound.attr,
 	&dev_attr_headphone_volume.attr,
 //	&dev_attr_speaker_volume.attr,
-//	&dev_attr_mic_level_general.attr,
+	&dev_attr_mic_level_general.attr,
+	&dev_attr_mic_level_cam.attr,
 	&dev_attr_debug.attr,
 	&dev_attr_register_dump.attr,
 	&dev_attr_version.attr,
