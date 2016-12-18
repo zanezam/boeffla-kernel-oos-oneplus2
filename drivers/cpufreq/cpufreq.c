@@ -619,12 +619,15 @@ static ssize_t store_scaling_max_freq_hardlimit(struct cpufreq_policy *policy, c
  */
 static ssize_t store_scaling_min_freq(struct cpufreq_policy *policy, const char *buf, size_t count)
 {
-	unsigned int ret = -EINVAL;
+	int ret;
 	struct cpufreq_policy new_policy;
 
 	ret = cpufreq_get_policy(&new_policy, policy->cpu);
 	if (ret)
 		return -EINVAL;
+
+	new_policy.min = new_policy.user_policy.min;
+	new_policy.max = new_policy.user_policy.max;
 
 	ret = sscanf(buf, "%u", &new_policy.min);
 	if (ret != 1)
@@ -641,6 +644,8 @@ static ssize_t store_scaling_min_freq(struct cpufreq_policy *policy, const char 
 		pr_err("cpufreq: Frequency verification failed\n");
 
 	policy->user_policy.min = new_policy.min;
+	policy->user_policy.max = new_policy.max;
+
 	ret = cpufreq_set_policy(policy, &new_policy);
 
 	return ret ? ret : count;
@@ -652,12 +657,15 @@ static ssize_t store_scaling_min_freq(struct cpufreq_policy *policy, const char 
  */
 static ssize_t store_scaling_max_freq(struct cpufreq_policy *policy, const char *buf, size_t count)
 {
-	unsigned int ret = -EINVAL;
+	int ret;
 	struct cpufreq_policy new_policy;
 
 	ret = cpufreq_get_policy(&new_policy, policy->cpu);
 	if (ret)
 		return -EINVAL;
+
+	new_policy.min = new_policy.user_policy.min;
+	new_policy.max = new_policy.user_policy.max;
 
 	ret = sscanf(buf, "%u", &new_policy.max);
 	if (ret != 1)
@@ -673,7 +681,9 @@ static ssize_t store_scaling_max_freq(struct cpufreq_policy *policy, const char 
 	if (ret)
 		pr_err("cpufreq: Frequency verification failed\n");
 
+	policy->user_policy.min = new_policy.min;
 	policy->user_policy.max = new_policy.max;
+
 	ret = cpufreq_set_policy(policy, &new_policy);
 
 	return ret ? ret : count;
