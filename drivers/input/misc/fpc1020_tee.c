@@ -332,7 +332,7 @@ static ssize_t report_home_set(struct device *dev,
 	else if (!strncmp(buf, "up", strlen("up")))
 	{
 #ifdef VENDOR_EDIT //WayneChang, 2015/12/02, add for key to abs, simulate key in abs through virtual key system
-		if(ignore_keypad){
+		if(virtual_key_enable){
                 key_home_pressed = false;
 		}else{
 			input_report_key(fpc1020->input_dev,
