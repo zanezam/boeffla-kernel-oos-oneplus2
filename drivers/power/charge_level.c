@@ -1,7 +1,7 @@
 /*
- * Author: andip71, 11.03.2016
+ * Author: andip71, 05.11.2014
  *
- * Version 1.2
+ * Version 1.1
  * 
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -88,27 +88,9 @@ static ssize_t charge_level_usb_store(struct kobject *kobj, struct kobj_attribut
 
 static ssize_t charge_info_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	char charge_info_text[30];
-	
-	// check connected charger type
-	switch (charger_type)
-	{
-		case BK_CHARGER_NONE:
-			return sprintf(buf, "No charger");
-			break;
-			
-		case BK_CHARGER_AC:
-			sprintf(charge_info_text, "AC charger");
-			break;
-			
-		case BK_CHARGER_USB:
-			sprintf(charge_info_text, "USB charger");
-			break;
-			
-		default:
-			sprintf(charge_info_text, "Unknown charger");
-			break;
-	}
+	// no charging (both current and requested charge currents are zero)
+	if ((charge_info_level_req == 0) && (charge_info_level_cur == 0))
+		return sprintf(buf, "%s", charge_info_text);
 
 	// stock charge logic
 	if (charge_level == 0)

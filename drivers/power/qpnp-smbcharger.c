@@ -62,7 +62,7 @@ int charge_info_level_req = 0;	// requested charge current
 int charge_info_level_cur = 0;	// current charge current
 int charge_level = 0;			// 0 = stock charge logic, not 0 = current to set
 static bool set_by_charge_level = false;	// flag for detection of set values
-int charger_type = BK_CHARGER_NONE;
+char charge_info_text[30] = "No charger";
 #endif /* CONFIG_CHARGE_LEVEL */
 
 #ifdef VENDOR_EDIT
@@ -4327,18 +4327,18 @@ static void handle_usb_insertion(struct smbchg_chip *chip)
 	if (usb_supply_type == POWER_SUPPLY_TYPE_USB_DCP)
 	{
 	    charge_level = ac_level;
-	    charger_type = BK_CHARGER_AC;
+	    sprintf(charge_info_text, "AC charger");
 	}
 	else if (usb_supply_type == POWER_SUPPLY_TYPE_USB)
 	{
 	    charge_level = usb_level;
-	    charger_type = BK_CHARGER_USB;
+	    sprintf(charge_info_text, "USB charger");
 	}
 	else
 	{
 	    charge_level = 0; // enable stock charging logic
-	    charger_type = BK_CHARGER_UNKNOWN;
-	    pr_info("Boeffla-Kernel: Unknown charger detected with ID %d", usb_supply_type);	}
+	    sprintf(charge_info_text, "Unknown charger %d", usb_supply_type);
+	}
 #endif /* CONFIG_CHARGE_LEVEL */
 	
 	if (chip->usb_psy) {
@@ -4422,7 +4422,7 @@ void update_usb_status(struct smbchg_chip *chip, bool usb_present, bool force)
 		charge_level = 0;
 		charge_info_level_req = 0;
 		charge_info_level_cur = 0;
-		charger_type = BK_CHARGER_NONE;
+		sprintf(charge_info_text, "No charger");
 #endif /* CONFIG_CHARGE_LEVEL */
 		handle_usb_removal(chip);
 	}
